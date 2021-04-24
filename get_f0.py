@@ -5,7 +5,7 @@
     Tav = Tempo de avanço em ms (sobreposição entre janelas).
     inds = Janelas a serem utilizados.
     Fs = Freq. de amostragem.
-
+    
     F0 = vetor F0 estimado.
     Obs: O vetor de F0 é reduzido pela mediana, valores distantes são removidos.
 """
@@ -14,7 +14,7 @@ import numpy as np
 from scipy.io import wavfile
 
 def get_f0(Tjan, Tav, inds, Fs, filename):
-    fs, x = wavfile.read(filename)
+    Fs, x = wavfile.read(filename)
     N = x.shape[0]
     Njan = int((Tjan/1000)*Fs) # Num. de amostras em cada janela.
     NAv = int((Tav/1000)*Fs)   # Num. de amostras para o avanço (sobreposição).
@@ -55,13 +55,3 @@ def get_f0(Tjan, Tav, inds, Fs, filename):
     F0 = F0[F0 <= mdn + range_mdn]
 
     return F0
-
-
-
-
-
-
-
-
-
-
