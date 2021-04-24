@@ -50,7 +50,6 @@ def get_f0(Tjan, Tav, inds, Fs, filename):
     mdn = np.median(F0)
     range_mdn = 15 # Valor em que a mediana pode variar (para mais ou para menos).
 
-
     F0 = F0[F0 >= mdn-range_mdn] # Atualiza os k0 (descarta os que estão distantes de mediana).
     F0 = F0[F0 <= mdn + range_mdn]
 
