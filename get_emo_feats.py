@@ -1,23 +1,28 @@
 import numpy as np
-import librosa # Bliblioteca para processamento e análise de áudio.
 import matplotlib.pylab as plt # Plot
 import os
 from scipy.io import wavfile
 
-def get_emo_feats(emo,TJan):
-    base = []
-    path = 'C:\\Users\\victo\Documents\Dataset _ EmoDB2\wav\\treino'
+import feature_ext as feat
+
+def get_emo_feats(emo='W',TJan=40,Tav=10,ext='f0'):
+    base = []    
+    path = 'C:\\Users\\victo\\Documents\\Dataset _ EmoDB2\wav\\treino'
     files = os.listdir(path)
-    TJan = round((TJan / 1000) * 22050)  # Define o tamanho de cada janela em amostras.
 
     for f in files:
         if f[5] == emo:
             filename = path + '\\' + f
-            # fs, x = wavfile.read(filename)
-            x, fs = librosa.load(filename)
-            f0, voiced_flag, voiced_probs = librosa.pyin(x, fmin=65, fmax=500, sr=fs, frame_length=TJan, win_length=None)
-            f0 = f0[~np.isnan(f0)]
+            Fs, x = wavfile.read(filename)      
 
-            base = np.append(base,np.mean(f0))
+            mat_esp = feat.get_spec(x, Fs, TJan, Tav, 0)
+            MFCC = feat.get_mfcc(mat_esp, Fs, TJan, TJan_dmfcc = 5)    
+            lim = np.mean(MFCC[0,:])
+            inds = np.nonzero(MFCC[0,:] > lim)[0].tolist()
+            MFCC = MFCC[1:-1,inds]
+
+            F0 = feat.get_f0(x, Fs, TJan, Tav, np.array(inds))            
+
+            base = np.append(base,np.mean(F0))
 
     return base.tolist()
