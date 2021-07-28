@@ -18,6 +18,8 @@ from pylab import imshow
 import scipy as sp
 from math import log, exp, sqrt, cos, pi, ceil, floor
 from numpy.linalg import inv
+import numpy.matlib
+import time
 
 def get_f0(x, Fs, Tjan, Tav, inds):
     # Fs, x = wavfile.read(filename)
@@ -30,7 +32,9 @@ def get_f0(x, Fs, Tjan, Tav, inds):
     R = np.zeros(shape = (inds.shape[0],len(range(1,fim+1)))) # Inicialização da matriz de autocorrelaçao.
     b = np.zeros(shape = (len(range(1,fim+1)), Njan))         # Inicialização da matriz de dados.
 
+    init = time.time()
     for i in range(0,inds.shape[0]): # Laço for para cada janela específica.
+        
         aux = inds[i] # Define a janela específica.
         ap = ((aux)*NAv)+1
         a = x[ap:ap+Njan]
@@ -42,7 +46,9 @@ def get_f0(x, Fs, Tjan, Tav, inds):
                 med = np.mean(x[range(ap+m-1,(ap+Njan-1)+m)])
                 b[m,:] = x[range(ap+m-1,(ap+Njan-1)+m)]-med
 
+        
         R[i,:] = np.matmul(b,a) # % Vetor de autocorrelação, para cada janela i.
+    print('Mat mult F0:' + str(time.time()-init))
 
     max_ind = np.argmax(R,1) # Obtém as posições dos valores máximos.
     inds_zero = np.nonzero(max_ind==0)[0].tolist()
@@ -140,11 +146,12 @@ def get_mfcc(mat_esp, Fs, TJan, TJan_dmfcc):
     for n in range(nFiltTotal):
         ind_i = (np.absolute(escala - freq_i[n])).argmin()
         ind_f = (np.absolute(escala - freq_f[n])).argmin()
+        #filtros[n,ind_i:ind_f+1] = 1
 
-        # Filtros retangulares.
+        #Filtros retangulares.
         for col in range(ind_i,ind_f+1):
             filtros[n,col] = 1
-
+        
         # Normalização dos filtros
         filtros[n,:] = filtros[n,:]*(1/(freq_f[n]-freq_i[n]))
 
@@ -153,9 +160,15 @@ def get_mfcc(mat_esp, Fs, TJan, TJan_dmfcc):
     matDCT = np.zeros([numCoefCep,nFiltTotal])
     peso = 1/sqrt(numCoefCep)
 
+    #aux = np.array(range(nFiltTotal))
+    #b = np.array(range(0,numCoefCep))
+    #bt = np.matlib.repmat(b,40,1)
+    #bt = np.transpose(bt)
+    #matDCT = peso*np.cos(pi*bt)*((aux-0.5)/nFiltTotal)
+    
     for lin in range(numCoefCep):
         aux = np.array(range(nFiltTotal))
-        matDCT[lin,:] = peso*cos(pi*lin)*((aux-0.5)/nFiltTotal)
+        matDCT[lin,:] = peso*cos(pi*lin)*((aux-0.5)/nFiltTotal)    
 
     # Obtém as energias logarítmicas.
     EspLog = np.log10(np.matmul(filtros,mat_esp)+10e-6)
